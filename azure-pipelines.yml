@@ -1,0 +1,51 @@
+
+trigger:
+  branches:
+    include:
+    - main
+
+pool:
+  name: 'Local-Agent-Pool'
+
+variables:
+  buildConfiguration: 'production'
+
+stages:
+- stage: Build
+  displayName: 'Build Angular Application'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build and Test'
+    steps:
+
+    # Paso 1: Instalar Node.js
+    - task: NodeTool@0
+      displayName: 'Install Node.js'
+      inputs:
+        versionSpec: '20.x'
+
+    # Paso 2: Instalar dependencias
+    - script: |
+        npm install
+      displayName: 'npm install'
+      workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+    # Paso 3: Compilar la aplicación
+    - script: |
+        npm run build -- --configuration=$(buildConfiguration)
+      displayName: 'Build Angular App'
+      workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+    # Paso 4: Ejecutar pruebas (opcional, comentado por ahora)
+    # - script: |
+    #     npm run test -- --watch=false --browsers=ChromeHeadless
+    #   displayName: 'Run Unit Tests'
+    #   workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+    # Paso 5: Publicar artefactos
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Build Artifacts'
+      inputs:
+        PathtoPublish: '$(System.DefaultWorkingDirectory)/dist/poss/browser'
+        ArtifactName: 'angular-app'
+        publishLocation: 'Container'
